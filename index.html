@@ -19,19 +19,22 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
-        .custom-radio {
+        .custom-checkbox {
             appearance: none;
             width: 1.5em;
             height: 1.5em;
             border: 2px solid #d1d5db;
-            border-radius: 50%;
+            border-radius: 0.35rem;
             outline: none;
             transition: all 0.2s ease;
         }
-        .custom-radio:checked {
+        .custom-checkbox:checked {
             border-color: #4f46e5;
             background-color: #4f46e5;
-            box-shadow: inset 0 0 0 4px #fff;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23fff'%3E%3Cpath fill-rule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clip-rule='evenodd'/%3E%3C/svg%3E");
+            background-size: 100% 100%;
+            background-position: 50%;
+            background-repeat: no-repeat;
         }
         .progress-ring {
             transition: stroke-dashoffset 0.35s;
@@ -44,7 +47,7 @@
     <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl p-8 sm:p-12">
         <header class="text-center mb-12">
             <h1 class="text-3xl sm:text-4xl font-bold mb-4 text-gray-800">Indian Stock Market App Project Checklist</h1>
-            <p class="text-gray-600">Tailor your app to the vibrant Indian market</p>
+            <p class="text-gray-600">Tailor your app to the vibrant Indian market (Select all that apply)</p>
         </header>
         
         <div class="flex justify-center items-center mb-12">
@@ -163,7 +166,7 @@
                 <div class="space-y-3">
                     ${q.options.map(option => `
                         <label class="flex items-center space-x-3 cursor-pointer">
-                            <input type="radio" name="q${index + 1}" value="${option}" class="custom-radio">
+                            <input type="checkbox" name="q${index + 1}" value="${option}" class="custom-checkbox">
                             <span class="text-gray-700">${option}</span>
                         </label>
                     `).join('')}
@@ -173,9 +176,9 @@
         });
 
         function updateProgress() {
-            const totalQuestions = questions.length;
-            const answeredQuestions = form.querySelectorAll('input[type="radio"]:checked').length;
-            const progress = (answeredQuestions / totalQuestions) * 100;
+            const totalOptions = form.querySelectorAll('input[type="checkbox"]').length;
+            const checkedOptions = form.querySelectorAll('input[type="checkbox"]:checked').length;
+            const progress = (checkedOptions / totalOptions) * 100;
             const offset = circumference - (progress / 100 * circumference);
             progressRing.style.strokeDashoffset = offset;
             progressText.textContent = `${Math.round(progress)}%`;
@@ -189,7 +192,10 @@
             const results = {};
 
             for (let [key, value] of formData.entries()) {
-                results[key] = value;
+                if (!results[key]) {
+                    results[key] = [];
+                }
+                results[key].push(value);
             }
 
             const { jsPDF } = window.jspdf;
@@ -197,23 +203,23 @@
 
             doc.setFontSize(20);
             doc.setTextColor(30, 64, 175); // Indigo color
-            doc.text("Indian Stock Market App Project Checklist Results", 20, 20);
+            doc.text("Indian Stock Market App Project Checklist Results", 10, 20);
 
             doc.setFontSize(12);
             doc.setTextColor(0, 0, 0);
 
             let yPosition = 40;
-            Object.entries(results).forEach(([question, answer], index) => {
+            Object.entries(results).forEach(([question, answers], index) => {
                 if (yPosition > 280) {
                     doc.addPage();
                     yPosition = 20;
                 }
                 doc.setFontSize(10);
                 doc.setTextColor(30, 64, 175); // Indigo color for questions
-                doc.text(`Q${index + 1}: ${questions[index].question}`, 20, yPosition);
+                doc.text(`Q${index + 1}: ${questions[index].question}`, 10, yPosition);
                 yPosition += 10;
                 doc.setTextColor(0, 0, 0); // Black color for answers
-                doc.text(`A: ${answer}`, 30, yPosition);
+                doc.text(`A: ${answers.join(', ')}`, 20, yPosition);
                 yPosition += 15;
             });
 
